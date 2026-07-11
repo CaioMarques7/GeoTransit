@@ -1,4 +1,4 @@
-# 002 - Direcionamentos Arquiteturais
+# 001 - Direcionamentos Arquiteturais
 
 ## Objetivo
 
