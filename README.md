@@ -6,20 +6,41 @@ Imagine uma plataforma de transporte público utilizada diariamente por milhões
 
 > **"Qual é o próximo ônibus que passará perto de mim?"**
 
-Em grandes centros urbanos, milhões de usuários podem realizar consultas semelhantes ao mesmo tempo, tornando inviável repetir todo o processamento durante cada requisição.
+Embora essa pergunta pareça trivial sob a perspectiva do usuário, respondê-la em tempo real exige correlacionar grandes volumes de dados geoespaciais, informações estáticas de operação das linhas e atualizações contínuas da posição dos veículos.
 
-Responder essa pergunta exige correlacionar dois conjuntos de dados muito diferentes:
+Uma implementação tradicional normalmente resolve esse problema executando toda a composição das informações durante cada requisição.
 
-* informações estáticas sobre a operação do transporte (GTFS Static);
-* informações dinâmicas sobre a posição dos veículos (GTFS Realtime).
+De forma simplificada, o fluxo costuma ser:
 
-Este estudo documenta a evolução arquitetural de uma solução construída para responder esse desafio.
+1. Receber a localização do usuário.
+2. Encontrar as paradas mais próximas.
+3. Identificar quais linhas atendem essas paradas.
+4. Consultar os veículos em operação.
+5. Estimar o tempo de chegada de cada veículo.
+6. Ordenar os resultados.
+7. Retornar a melhor opção ao usuário.
+
+Embora esse fluxo seja funcional, ele apresenta uma característica importante:
+
+**Todo o trabalho é repetido para cada nova requisição.**
+
+Em grandes centros urbanos, milhões de usuários podem realizar essa consulta simultaneamente, principalmente durante os horários de pico. Nesse cenário, pequenas ineficiências arquiteturais tornam-se rapidamente gargalos capazes de comprometer a experiência do usuário e aumentar significativamente o custo operacional da plataforma.
+
+---
+
+# Motivação
+
+A principal hipótese deste estudo é que a arquitetura pode ser reorganizada para deslocar parte significativa do processamento para pipelines especializados, produzindo modelos de leitura preparados antecipadamente.
+
+Essa abordagem reduz a quantidade de processamento realizada durante cada requisição e transforma consultas complexas em operações de leitura simples, preservando baixa latência mesmo sob elevada concorrência.
+
+Mais do que otimizar uma tecnologia específica, o objetivo é investigar como decisões arquiteturais influenciam desempenho, escalabilidade, simplicidade operacional e custo de manutenção.
 
 ---
 
 # Objetivo
 
-Documentar o processo de tomada de decisão arquitetural utilizado para construir uma plataforma de consultas geoespaciais de alta performance e escalável, explorando diferentes estratégias de modelagem, processamento e materialização de dados.
+Documentar o processo de tomada de decisão arquitetural utilizado para construir uma plataforma de consultas geoespaciais de alta performance e escalável, baseada em GTFS, explorando diferentes estratégias de processamento, materialização de dados e otimização de leitura.
 
 Ao longo do projeto serão discutidos:
 
